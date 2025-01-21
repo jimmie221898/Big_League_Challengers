@@ -2,7 +2,11 @@ import pygame
 
 pygame.init()
 
-screen = pygame.display.set_mode((640,640))
+screen = pygame.display.set_mode((1800,900))
+
+pygame.display.set_caption("Big League Challengers")
+icon = pygame.image.load("Assets/Game_icon.png")
+pygame.display.set_icon(icon)
 
 running = True
 while running:
