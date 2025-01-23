@@ -104,7 +104,8 @@ start_button = button.Button(304, 125, start_image, 1)
 
 #character images
 cat_image = pygame.image.load("images/cat_1.png").convert_alpha()
-jump_cat_image = pygame.image.load("images/jump_cat.png").convert_alpha()
+jump_cat_image_right = pygame.image.load("images/jump_cat.png").convert_alpha()
+jump_cat_image_Left = pygame.image.load("images/jump_cat_left.png").convert_alpha()
 character_width = cat_image.get_width()
 character_height = cat_image.get_height()
 character_move_amount = 4
@@ -166,6 +167,16 @@ while running:
         pygame.draw.rect(screen, LIGHT_GREEN, floor_rect)
         character_x += x_change
         
+        keys = pygame.key.get_pressed()
+        if game_paused == False:
+            if keys[pygame.K_d]:  # Move right
+                print("move right")
+                x_change = +character_move_amount
+            elif keys[pygame.K_a]:  # Move left
+                print("move left")
+                x_change = -character_move_amount
+            else:  # If no movement key is pressed, stop movement
+                x_change = 0
         
 
 
@@ -175,7 +186,13 @@ while running:
             if y_jump_velocity < -jump_height:
                 jumping = False
                 y_jump_velocity = jump_height
-            add_character_at_location(character_x,character_y,jump_cat_image)
+            if keys[pygame.K_d]:  # Move right
+                add_character_at_location(character_x,character_y,jump_cat_image_right)
+            elif keys[pygame.K_a]:  # Move left
+                add_character_at_location(character_x,character_y,jump_cat_image_Left)
+            else:  # If no movement key is pressed, stop movement
+                add_character_at_location(character_x,character_y,jump_cat_image_right)
+            
         else:
             add_character_at_location(character_x,character_y,cat_image)
             if character_rect.colliderect(floor_rect):
@@ -186,16 +203,7 @@ while running:
                 character_y += velocity_y
 
 
-    if game_paused == False:
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_d]:  # Move right
-            print("move right")
-            x_change = +character_move_amount
-        elif keys[pygame.K_a]:  # Move left
-            print("move left")
-            x_change = -character_move_amount
-        else:  # If no movement key is pressed, stop movement
-            x_change = 0
+    
     
 
 
