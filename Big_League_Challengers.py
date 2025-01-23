@@ -21,9 +21,13 @@ jumping = False
 #movement
 character_move_amount = 4
 x_change = 0
+last_movement = "right"
 #character position
 character_x = (width * 0.5)
 character_y = (0)
+# Set an initial frame and counter for movement
+frame_counter = 0
+frame_delay = 7  # Number of frames before changing the image (adjust as needed)
 
 
 
@@ -115,13 +119,26 @@ back_button = button.Button(332, 450, back_image, 1)
 start_button = button.Button(304, 125, start_image, 1)
 
 #character images
-cat_image = pygame.image.load("images/cat_1.png").convert_alpha()
+cat_idle_right_image = pygame.image.load("images/cat_idle_right.png").convert_alpha()
+cat_idle_left_image = pygame.image.load("images/cat_idle_left.png").convert_alpha()
 jump_cat_image_right = pygame.image.load("images/jump_cat.png").convert_alpha()
 jump_cat_image_Left = pygame.image.load("images/jump_cat_left.png").convert_alpha()
+run_cat_right_0 = pygame.image.load("images/run_cat_right_0.png").convert_alpha()
+run_cat_right_1 = pygame.image.load("images/run_cat_right_1.png").convert_alpha()
+run_cat_right_2 = pygame.image.load("images/run_cat_right_2.png").convert_alpha()
+run_cat_left_0 = pygame.image.load("images/run_cat_left_0.png").convert_alpha()
+run_cat_left_1 = pygame.image.load("images/run_cat_left_1.png").convert_alpha()
+run_cat_left_2 = pygame.image.load("images/run_cat_left_2.png").convert_alpha()
+
+# List of running images (right and left)
+run_right_images = [run_cat_right_0, run_cat_right_1, run_cat_right_2, run_cat_right_1]
+run_left_images = [run_cat_left_0, run_cat_left_1, run_cat_left_2, run_cat_left_1]
+
+
 
 #character sizes
-character_width = cat_image.get_width()
-character_height = cat_image.get_height()
+character_width = cat_idle_right_image.get_width()
+character_height = cat_idle_right_image.get_height()
 
 def add_character_at_location(x,y,which_image):
     screen.blit(which_image,(x,y))
@@ -182,11 +199,24 @@ while running:
         if game_paused == False:
             if keys[pygame.K_d]:  # Move right
                 print("move right")
+                last_movement = "right"
                 x_change = +character_move_amount
+                if jumping == False:
+                    add_character_at_location(character_x, character_y, run_right_images[frame_counter // frame_delay])
+                    frame_counter = (frame_counter + 1) % (len(run_right_images) * frame_delay)  # Loop through frames
             elif keys[pygame.K_a]:  # Move left
                 print("move left")
+                last_movement = "left"
                 x_change = -character_move_amount
+                if jumping == False:
+                    add_character_at_location(character_x, character_y, run_left_images[frame_counter // frame_delay])
+                    frame_counter = (frame_counter + 1) % (len(run_left_images) * frame_delay)  # Loop through frames
             else:  # If no movement key is pressed, stop movement
+                if jumping == False:
+                    if last_movement == "right":
+                        add_character_at_location(character_x,character_y,cat_idle_right_image)
+                    else:
+                        add_character_at_location(character_x,character_y,cat_idle_left_image)
                 x_change = 0
         
 
@@ -197,15 +227,16 @@ while running:
             if y_jump_velocity < -jump_height:
                 jumping = False
                 y_jump_velocity = jump_height
-            if keys[pygame.K_d]:  # Move right
+            if keys[pygame.K_d]:  
                 add_character_at_location(character_x,character_y,jump_cat_image_right)
-            elif keys[pygame.K_a]:  # Move left
+            elif keys[pygame.K_a]:  
                 add_character_at_location(character_x,character_y,jump_cat_image_Left)
-            else:  # If no movement key is pressed, stop movement
-                add_character_at_location(character_x,character_y,jump_cat_image_right)
-            
+            else:
+                if last_movement == "right":
+                    add_character_at_location(character_x,character_y,jump_cat_image_right)
+                else:
+                    add_character_at_location(character_x,character_y,jump_cat_image_Left)
         else:
-            add_character_at_location(character_x,character_y,cat_image)
             if character_rect.colliderect(floor_rect):
                 velocity_y = 0
             else:
