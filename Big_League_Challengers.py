@@ -3,8 +3,31 @@ import button
 
 
 pygame.init()
+
+#VARIABLES
 width = 950
 height = 800
+# Gravity and velocity
+gravity = 1
+velocity_y = 0
+jump_height = 20
+y_jump_velocity = jump_height
+#define states
+menu_state = "start"
+previous_menu = "start"
+game_paused = 1
+running = True
+jumping = False
+#movement
+character_move_amount = 4
+x_change = 0
+#character position
+character_x = (width * 0.5)
+character_y = (0)
+
+
+
+#SETUP
 screen = pygame.display.set_mode((width,height))
 pygame.display.set_caption("Big League Challengers")
 icon = pygame.image.load("images/Game_icon.png")
@@ -13,11 +36,6 @@ clock = pygame.time.Clock()
 Game_Menu = pygame.image.load('images/Game_menu.png').convert()
 
 
-# Gravity and velocity
-gravity = 1
-velocity_y = 0
-
-#colours
 # Define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -73,12 +91,6 @@ BRONZE = (205, 127, 50)
 #game scenes
 Game_Menu = pygame.image.load('images/Game_menu.png').convert()
 
-#define states
-menu_state = "start"
-previous_menu = "start"
-game_paused = 1
-running = True
-
 #define fonts
 font = pygame.font.SysFont("arialblack",40)
 
@@ -106,22 +118,21 @@ start_button = button.Button(304, 125, start_image, 1)
 cat_image = pygame.image.load("images/cat_1.png").convert_alpha()
 jump_cat_image_right = pygame.image.load("images/jump_cat.png").convert_alpha()
 jump_cat_image_Left = pygame.image.load("images/jump_cat_left.png").convert_alpha()
+
+#character sizes
 character_width = cat_image.get_width()
 character_height = cat_image.get_height()
-character_move_amount = 4
-x_change = 0
+
 def add_character_at_location(x,y,which_image):
     screen.blit(which_image,(x,y))
-character_x = (width * 0.5)
-character_y = (0)
-jump_height = 20
-jumping = False
-y_jump_velocity = jump_height
+
+
 
 while running:
 
     screen.blit(Game_Menu,(-60,-200))
 
+    #MENU STATE HANDLING
     if game_paused == True:
         #check menu state for main
         if menu_state == "start":
@@ -179,7 +190,7 @@ while running:
                 x_change = 0
         
 
-
+        #JUMPING
         if jumping:
             character_y -= y_jump_velocity
             y_jump_velocity -= gravity
@@ -202,11 +213,7 @@ while running:
                 velocity_y += gravity
                 character_y += velocity_y
 
-
-    
-    
-
-
+    #EVENT HANDLING
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
