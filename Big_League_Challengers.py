@@ -4,13 +4,13 @@ import button
 
 pygame.init()
 
-#VARIABLES
+#region VARIABLES
 width = 950
 height = 800
 # Gravity and velocity
 gravity = 1
 velocity_y = 0
-jump_height = 30
+jump_height = 25
 y_jump_velocity = jump_height
 glide_gravity = 0.01  # Reduced gravity while gliding
 #define states
@@ -31,7 +31,7 @@ character_y = (0)
 # Set an initial frame and counter for movement
 frame_counter = 0
 frame_delay = 7  # Number of frames before changing the image (adjust as needed)
-
+#endregion
 
 
 #SETUP
@@ -43,7 +43,7 @@ clock = pygame.time.Clock()
 Game_Menu = pygame.image.load('images/Game_menu.png').convert()
 
 
-# Define colors
+#region Define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (128, 128, 128)
@@ -94,6 +94,8 @@ DARK_MAGENTA = (139, 0, 139)
 GOLD = (255, 215, 0)
 SILVER = (192, 192, 192)
 BRONZE = (205, 127, 50)
+#endregion
+
 
 #game scenes
 Game_Menu = pygame.image.load('images/Game_menu.png').convert()
@@ -101,7 +103,7 @@ Game_Menu = pygame.image.load('images/Game_menu.png').convert()
 #define fonts
 font = pygame.font.SysFont("arialblack",40)
 
-#load button images
+#region load buttons
 resume_image = pygame.image.load("images/button_resume.png").convert_alpha()
 options_image = pygame.image.load("images/button_options.png").convert_alpha()
 quit_image = pygame.image.load("images/button_quit.png").convert_alpha()
@@ -120,8 +122,10 @@ audio_button = button.Button(225, 200, audio_image, 1)
 keys_button = button.Button(246, 325, keys_image, 1)
 back_button = button.Button(332, 450, back_image, 1)
 start_button = button.Button(304, 125, start_image, 1)
+#endregion
 
-#character images
+
+#region character images
 cat_idle_right_image = pygame.image.load("images/cat_idle_right.png").convert_alpha()
 cat_idle_left_image = pygame.image.load("images/cat_idle_left.png").convert_alpha()
 jump_cat_image_right = pygame.image.load("images/jump_cat.png").convert_alpha()
@@ -134,6 +138,7 @@ run_cat_left_1 = pygame.image.load("images/run_cat_left_1.png").convert_alpha()
 run_cat_left_2 = pygame.image.load("images/run_cat_left_2.png").convert_alpha()
 glide_cat_left_image = pygame.image.load("images/glide_cat_left_image.png").convert_alpha()
 glide_cat_right_image = pygame.image.load("images/glide_cat_right_image.png").convert_alpha()
+#endregion
 
 # List of running images (right and left)
 run_right_images = [run_cat_right_0, run_cat_right_1, run_cat_right_2, run_cat_right_1]
@@ -154,7 +159,7 @@ while running:
 
     screen.blit(Game_Menu,(-60,-200))
 
-    #MENU STATE HANDLING
+    #region MENU STATE HANDLING
     if game_paused == True:
         #check menu state for main
         if menu_state == "start":
@@ -192,7 +197,7 @@ while running:
                 pygame.time.wait(100)
             if quit_button.draw(screen):
                 running = False
-
+    #endregion
     if game_paused == False:
         character_rect = pygame.Rect(character_x, character_y, character_width, character_height)
         screen.fill(DARK_PINK)
@@ -200,6 +205,7 @@ while running:
         pygame.draw.rect(screen, LIGHT_GREEN, floor_rect)
         character_x += x_change
         
+        #region MOVING LOGIC
         keys = pygame.key.get_pressed()
         if game_paused == False:
             if keys[pygame.K_d]:  # Move right
@@ -223,9 +229,9 @@ while running:
                     else:
                         add_character_at_location(character_x,character_y,cat_idle_left_image)
                 x_change = 0
-        
+        #endregion
 
-       # JUMPING AND GLIDING
+       #region JUMPING AND GLIDING
         if jumping:
             on_ground = False
             if gliding:
@@ -276,33 +282,11 @@ while running:
                 # Apply gravity or reduced gravity
                 velocity_y += gravity
                 character_y += velocity_y
-                
+        #endregion
 
-        # #JUMPING
-        # if jumping:
-        #     character_y -= y_jump_velocity
-        #     y_jump_velocity -= gravity
-        #     if y_jump_velocity < -jump_height:
-        #         jumping = False
-        #         y_jump_velocity = jump_height
-        #     if keys[pygame.K_d]:  
-        #         add_character_at_location(character_x,character_y,jump_cat_image_right)
-        #     elif keys[pygame.K_a]:  
-        #         add_character_at_location(character_x,character_y,jump_cat_image_Left)
-        #     else:
-        #         if last_movement == "right":
-        #             add_character_at_location(character_x,character_y,jump_cat_image_right)
-        #         else:
-        #             add_character_at_location(character_x,character_y,jump_cat_image_Left)
-        # else:
-        #     if character_rect.colliderect(floor_rect):
-        #         velocity_y = 0
-        #     else:
-        #         # Apply gravity
-        #         velocity_y += gravity
-        #         character_y += velocity_y
+        
 
-    #EVENT HANDLING
+    # region EVENT HANDLING
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -315,7 +299,7 @@ while running:
                     print("paused")
                 if event.key == pygame.K_SPACE:
                     jumping = True
-                
+    #endregion    
 
 
     pygame.display.flip()
