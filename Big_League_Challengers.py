@@ -10,14 +10,17 @@ height = 800
 # Gravity and velocity
 gravity = 1
 velocity_y = 0
-jump_height = 20
+jump_height = 30
 y_jump_velocity = jump_height
+glide_gravity = 0.01  # Reduced gravity while gliding
 #define states
 menu_state = "start"
 previous_menu = "start"
 game_paused = 1
 running = True
 jumping = False
+gliding = False  
+on_ground = False
 #movement
 character_move_amount = 4
 x_change = 0
@@ -129,6 +132,8 @@ run_cat_right_2 = pygame.image.load("images/run_cat_right_2.png").convert_alpha(
 run_cat_left_0 = pygame.image.load("images/run_cat_left_0.png").convert_alpha()
 run_cat_left_1 = pygame.image.load("images/run_cat_left_1.png").convert_alpha()
 run_cat_left_2 = pygame.image.load("images/run_cat_left_2.png").convert_alpha()
+glide_cat_left_image = pygame.image.load("images/glide_cat_left_image.png").convert_alpha()
+glide_cat_right_image = pygame.image.load("images/glide_cat_right_image.png").convert_alpha()
 
 # List of running images (right and left)
 run_right_images = [run_cat_right_0, run_cat_right_1, run_cat_right_2, run_cat_right_1]
@@ -220,29 +225,82 @@ while running:
                 x_change = 0
         
 
-        #JUMPING
+       # JUMPING AND GLIDING
         if jumping:
-            character_y -= y_jump_velocity
-            y_jump_velocity -= gravity
-            if y_jump_velocity < -jump_height:
+            on_ground = False
+            if gliding:
+                # Apply reduced gravity while gliding
+                y_jump_velocity -= glide_gravity
+                character_y -= y_jump_velocity
+                # Display the gliding images
+                if last_movement == "right":
+                    add_character_at_location(character_x, character_y, glide_cat_right_image)
+                else:
+                    add_character_at_location(character_x, character_y, glide_cat_left_image)
+                # Stop gliding if the space bar is released
+                if not keys[pygame.K_SPACE]:
+                    gliding = False
+            else:
+                # Normal jumping behavior
+                character_y -= y_jump_velocity
+                y_jump_velocity -= gravity
+                # Display the jumping images
+                if keys[pygame.K_d]:
+                    add_character_at_location(character_x, character_y, jump_cat_image_right)
+                elif keys[pygame.K_a]:
+                    add_character_at_location(character_x, character_y, jump_cat_image_Left)
+                else:
+                    if last_movement == "right":
+                        add_character_at_location(character_x, character_y, jump_cat_image_right)
+                    else:
+                        add_character_at_location(character_x, character_y, jump_cat_image_Left)
+                # Enable gliding if space bar is pressed and character is falling
+                if keys[pygame.K_SPACE] and y_jump_velocity < 0:
+                    gliding = True
+                    print("Gliding activated!")
+
+            # End the jump if the jump height is exceeded
+            print(y_jump_velocity)
+            if character_rect.colliderect(floor_rect) and y_jump_velocity < 14:
                 jumping = False
                 y_jump_velocity = jump_height
-            if keys[pygame.K_d]:  
-                add_character_at_location(character_x,character_y,jump_cat_image_right)
-            elif keys[pygame.K_a]:  
-                add_character_at_location(character_x,character_y,jump_cat_image_Left)
-            else:
-                if last_movement == "right":
-                    add_character_at_location(character_x,character_y,jump_cat_image_right)
-                else:
-                    add_character_at_location(character_x,character_y,jump_cat_image_Left)
-        else:
-            if character_rect.colliderect(floor_rect):
                 velocity_y = 0
-            else:
-                # Apply gravity
+        else:
+            # Check for collision with the ground
+            if character_rect.colliderect(floor_rect) and on_ground == False:
+                # Stop falling if on the ground
+                on_ground = True
+                velocity_y = 0
+                gliding = False  # Reset gliding when on the ground
+            elif on_ground == False:
+                # Apply gravity or reduced gravity
                 velocity_y += gravity
                 character_y += velocity_y
+                
+
+        # #JUMPING
+        # if jumping:
+        #     character_y -= y_jump_velocity
+        #     y_jump_velocity -= gravity
+        #     if y_jump_velocity < -jump_height:
+        #         jumping = False
+        #         y_jump_velocity = jump_height
+        #     if keys[pygame.K_d]:  
+        #         add_character_at_location(character_x,character_y,jump_cat_image_right)
+        #     elif keys[pygame.K_a]:  
+        #         add_character_at_location(character_x,character_y,jump_cat_image_Left)
+        #     else:
+        #         if last_movement == "right":
+        #             add_character_at_location(character_x,character_y,jump_cat_image_right)
+        #         else:
+        #             add_character_at_location(character_x,character_y,jump_cat_image_Left)
+        # else:
+        #     if character_rect.colliderect(floor_rect):
+        #         velocity_y = 0
+        #     else:
+        #         # Apply gravity
+        #         velocity_y += gravity
+        #         character_y += velocity_y
 
     #EVENT HANDLING
     for event in pygame.event.get():
