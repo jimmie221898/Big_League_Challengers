@@ -146,7 +146,7 @@ class Hero(Character):
 
     def move(self, ground):
         keys = pygame.key.get_pressed()
-
+        #print(self.y_jump_velocity)
         if keys[pygame.K_d]:
             self.direction = "right"
             self.x += self.x_speed
@@ -163,30 +163,32 @@ class Hero(Character):
         if self.jumping:
             self.on_ground = False
             if self.gliding:
-                self.y_jump_velocity -= self.glide_gravity
                 self.y -= self.y_jump_velocity
+                self.y_jump_velocity -= self.glide_gravity
                 if not keys[pygame.K_SPACE]:
                     self.gliding = False
+                 
             else:
                 self.y -= self.y_jump_velocity
                 self.y_jump_velocity -= self.gravity
                 if keys[pygame.K_SPACE] and self.y_jump_velocity < 0:
                     self.gliding = True
 
+            if ground.top - self.rect.bottom < 10 and self.y_jump_velocity < 0:
+                self.gliding = False
+
             # Ground collision detection
-            if ground.colliderect(self.rect) and self.y_jump_velocity < 14:
+            if self.rect.colliderect(ground) and self.y_jump_velocity < 14:
                 self.jumping = False
                 self.y_jump_velocity = self.jump_height
                 self.velocity_y = 0
-                self.rect.y = ground.top - self.rect.height  # Correct position on the ground
-
+            
         else:
             # Check for collision with the ground
-            if ground.colliderect(self.rect) and not self.on_ground:
+            if self.rect.colliderect(ground) and not self.on_ground:
                 self.on_ground = True
                 self.velocity_y = 0
                 self.gliding = False  # Reset gliding when on the ground
-                self.rect.y = ground.top - self.rect.height  # Correct position on the ground
             elif not self.on_ground:
                 # Apply gravity or reduced gravity
                 self.velocity_y += self.gravity
@@ -280,11 +282,11 @@ while running:
             running = False
         if game_paused == False:
             if event.type == pygame.KEYDOWN:
-                print("key pressed")
+                #print("key pressed")
                 if event.key == pygame.K_ESCAPE:
                     menu_state = "pause"
                     game_paused = True
-                    print("paused")
+                    #print("paused")
     #endregion    
 
 
