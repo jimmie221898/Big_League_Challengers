@@ -110,16 +110,23 @@ start_button = button.Button(304, 125, start_image, 1)
 class Character(pygame.sprite.Sprite):
     def __init__(self, type):
         super().__init__()
-        self.idle_right = pygame.image.load("images/cat_idle_right.png").convert_alpha()
-        # self.idle_left = pygame.image.load("images/{type}_idle_left.png").convert_alpha()
-        # self.jump_right = pygame.image.load("images/{type}_jump_right.png").convert_alpha()
-        # self.jump_left = pygame.image.load("images/{type}_jump_left.png").convert_alpha()
-        # self.run_right_0 = pygame.image.load("images/{type}_run_right_0.png").convert_alpha()
-        # self.run_right_1 = pygame.image.load("images/{type}_run_right_1.png").convert_alpha()
-        # self.run_right_2 = pygame.image.load("images/{type}_run_right_2.png").convert_alpha()
-        # self.run_left_0 = pygame.image.load("images/{type}_run_left_0.png").convert_alpha()
-        # self.run_left_1 = pygame.image.load("images/{type}_run_left_1.png").convert_alpha()
-        # self.run_left_2 = pygame.image.load("images/{type}_run_left_2.png").convert_alpha()
+        self. image_type = type
+        self.idle_right = pygame.image.load(f"images/{self.image_type}_idle_right.png").convert_alpha()
+        self.idle_left = pygame.image.load(f"images/{self.image_type}_idle_left.png").convert_alpha()
+        self.jump_right = pygame.image.load(f"images/{self.image_type}_jump_right.png").convert_alpha()
+        self.jump_left = pygame.image.load(f"images/{self.image_type}_jump_left.png").convert_alpha()
+        self.run_right_0 = pygame.image.load(f"images/{self.image_type}_run_right_0.png").convert_alpha()
+        self.run_right_1 = pygame.image.load(f"images/{self.image_type}_run_right_1.png").convert_alpha()
+        self.run_right_2 = pygame.image.load(f"images/{self.image_type}_run_right_2.png").convert_alpha()
+        self.run_left_0 = pygame.image.load(f"images/{self.image_type}_run_left_0.png").convert_alpha()
+        self.run_left_1 = pygame.image.load(f"images/{self.image_type}_run_left_1.png").convert_alpha()
+        self.run_left_2 = pygame.image.load(f"images/{self.image_type}_run_left_2.png").convert_alpha()
+        self.glide_left = pygame.image.load(f"images/{self.image_type}_glide_left.png").convert_alpha()
+        self.glide_right = pygame.image.load(f"images/{self.image_type}_glide_right.png").convert_alpha()
+        self.run_right_images = [self.run_right_0, self.run_right_1, self.run_right_2, self.run_right_1]
+        self.run_left_images = [ self.run_left_0,  self.run_left_1,  self.run_left_2,  self.run_left_1]
+        self.frame_counter = 0
+        self.frame_delay = 7
         self.width = self.idle_right.get_width()
         self.height = self.idle_right.get_height()
         self.surface = pygame.Surface((self.width,self.height))
@@ -146,57 +153,93 @@ class Hero(Character):
 
     def move(self, ground):
         keys = pygame.key.get_pressed()
-        #print(self.y_jump_velocity)
+
+        # Horizontal movement
         if keys[pygame.K_d]:
             self.direction = "right"
             self.x += self.x_speed
-            self.rect = self.surface.get_rect(center=(self.x, self.y))
-            screen.blit(self.idle_right, (self.x, self.y))
+            if not self.jumping:
+                screen.blit(self.run_right_images[self.frame_counter // self.frame_delay], (hero.x, hero.y)) 
+                self.frame_counter = (self.frame_counter + 1) % (len(self.run_right_images) * self.frame_delay)  # Loop through frames
         elif keys[pygame.K_a]:
             self.direction = "left"
             self.x -= self.x_speed
-            self.rect = self.surface.get_rect(center=(self.x, self.y))
-            screen.blit(self.idle_right, (self.x, self.y))
-        if keys[pygame.K_SPACE]:
+            if not self.jumping:
+                screen.blit(self.run_left_images[self.frame_counter // self.frame_delay], (hero.x, hero.y)) 
+                self.frame_counter = (self.frame_counter + 1) % (len(self.run_left_images) * self.frame_delay)  # Loop through frames
+        elif self.jumping == False:
+            if self.direction == "right":
+                screen.blit(self.idle_right, (hero.x, hero.y))  # Draw the hero at the new position
+            else:
+                screen.blit(self.idle_left, (hero.x, hero.y))  # Draw the hero at the new position
+       
+       
+        # Start jumping
+        if keys[pygame.K_SPACE] and self.on_ground:
             self.jumping = True
-
-        if self.jumping:
             self.on_ground = False
+            self.y_jump_velocity = self.jump_height  # Reset jump velocity when starting a new jump
+
+        # Handle jumping and gliding
+        if self.jumping:
             if self.gliding:
                 self.y -= self.y_jump_velocity
                 self.y_jump_velocity -= self.glide_gravity
+                # Display the gliding images
+                if self.direction == "right":
+                    screen.blit(self.glide_right, (hero.x, hero.y))
+                else:
+                    screen.blit(self.glide_left, (hero.x, hero.y))
                 if not keys[pygame.K_SPACE]:
                     self.gliding = False
-                 
             else:
                 self.y -= self.y_jump_velocity
                 self.y_jump_velocity -= self.gravity
+                # Display the jumping images
+                if self.direction == "right":
+                    screen.blit(self.jump_right, (hero.x, hero.y))
+                else:
+                    screen.blit(self.jump_left, (hero.x, hero.y))
+                    
                 if keys[pygame.K_SPACE] and self.y_jump_velocity < 0:
                     self.gliding = True
 
-            if ground.top - self.rect.bottom < 10 and self.y_jump_velocity < 0:
-                self.gliding = False
-
-            # Ground collision detection
-            if self.rect.colliderect(ground) and self.y_jump_velocity < 14:
+            # Ensure the character doesn't fall through the ground
+            if self.rect.colliderect(ground) and self.y_jump_velocity < 0:
                 self.jumping = False
                 self.y_jump_velocity = self.jump_height
                 self.velocity_y = 0
-            
-        else:
-            # Check for collision with the ground
-            if self.rect.colliderect(ground) and not self.on_ground:
-                self.on_ground = True
-                self.velocity_y = 0
-                self.gliding = False  # Reset gliding when on the ground
-            elif not self.on_ground:
-                # Apply gravity or reduced gravity
+                self.y = ground.top  # Snap to the top of the ground
+
+        else:  # Apply gravity and check for landing
+            if not self.on_ground:
                 self.velocity_y += self.gravity
                 self.y += self.velocity_y
 
+            # Check for collision with the ground
+            if self.rect.colliderect(ground):
+                self.on_ground = True
+                self.jumping = False
+                self.gliding = False
+                self.y_jump_velocity = self.jump_height
+                self.velocity_y = 0
+                self.y = ground.top  # Keep the character on top of the ground
+            else:
+                self.on_ground = False
+
+        # Prevent the character from ever going below the ground
+        if self.y > ground.top:
+            self.y = ground.top
+            self.on_ground = True
+            self.jumping = False
+            self.velocity_y = 0
+            self.gliding = False
+
         # Update rect for rendering
-        self.rect.center = (self.x, self.y)
-     
+        self.rect.bottom = self.y
+        self.rect.centerx = self.x
+        
+
 # class Zombie(Character):
 #     def __init__(self):
 #         Character.__init__(self, "Zombie")        
@@ -272,7 +315,7 @@ while running:
         pygame.draw.rect(screen, LIGHT_GREEN, floor_rect)
     
         hero.move(floor_rect)  # Update the hero's position
-        screen.blit(hero.surface, (hero.x, hero.y))  # Draw the hero at the new position
+        
 
         
 
