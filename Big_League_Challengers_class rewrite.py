@@ -1,6 +1,6 @@
 import pygame
 import button
-
+import math
 
 pygame.init()
 
@@ -13,6 +13,7 @@ menu_state = "start"
 previous_menu = "start"
 game_paused = 1
 running = True
+
 
 
 
@@ -85,6 +86,9 @@ Game_Menu = pygame.image.load('images/Game_menu.png').convert()
 #define fonts
 font = pygame.font.SysFont("arialblack",40)
 
+
+
+
 #load buttons
 resume_image = pygame.image.load("images/button_resume.png").convert_alpha()
 options_image = pygame.image.load("images/button_options.png").convert_alpha()
@@ -105,6 +109,31 @@ keys_button = button.Button(246, 325, keys_image, 1)
 back_button = button.Button(332, 450, back_image, 1)
 start_button = button.Button(304, 125, start_image, 1)
 #endregion
+
+
+bullet_group = pygame.sprite.Group()
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction):
+        self.group = bullet_group
+        pygame.sprite.Sprite.__init__(self, self.group)
+        self.speed = 10 
+        self.left_image = pygame.image.load("images/bullet_left.png").convert_alpha()
+        self.right_image = pygame.image.load("images/bullet_right.png").convert_alpha()
+        if direction == -1:
+            self.image = self.left_image
+        else:
+            self.image = self.right_image
+        self.rect = self.image.get_rect()
+        self.rect.center = (x,y)
+        self.direction = direction
+        
+
+    def update(self):
+        #move bullet
+        self.rect.x += (self.direction *self.speed)
+        #check if bullet off screen
+        if self.rect.right < 0 or self.rect.left > WIDTH:
+            self.kill()
 
 # =====CHARACTER CLASSES=====
 class Character(pygame.sprite.Sprite):
@@ -133,6 +162,12 @@ class Character(pygame.sprite.Sprite):
         self.direction = "right"
         self.step_count = 0
 
+    def shoot(self):
+        if hero.direction == "right":
+            bullet = Bullet(self.rect.centerx + 150, self.rect.centery + 125, 1)
+        else:
+            bullet = Bullet(self.rect.centerx - 50, self.rect.centery + 125, -1)  
+
 
 class Hero(Character):
     def __init__(self):
@@ -150,6 +185,7 @@ class Hero(Character):
         self.glide_gravity = 0.01
         self.x = WIDTH / 2
         self.y = HEIGHT / 2
+        self.shoot_cooldown = 120
 
     def move(self, ground):
         keys = pygame.key.get_pressed()
@@ -238,7 +274,20 @@ class Hero(Character):
         # Update rect for rendering
         self.rect.bottom = self.y
         self.rect.centerx = self.x
-        
+        mouse_buttons = pygame.mouse.get_pressed()
+        if mouse_buttons[0]:  # Left mouse button
+            if self.shoot_cooldown == 0:
+                hero.shoot()
+                self.shoot_cooldown = 30
+            print("Left mouse button is pressed")
+        if mouse_buttons[1]:  # Middle mouse button
+            print("Middle mouse button is pressed")
+        if mouse_buttons[2]:  # Right mouse button
+            print("Right mouse button is pressed")
+
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1
+            
 
 # class Zombie(Character):
 #     def __init__(self):
@@ -262,6 +311,7 @@ class Hero(Character):
 #             self.y_speed *= -1
 
 #         self.step_count += 1
+
 
 
 hero = Hero() 
@@ -315,8 +365,11 @@ while running:
         pygame.draw.rect(screen, LIGHT_GREEN, floor_rect)
     
         hero.move(floor_rect)  # Update the hero's position
+        bullet_group.update()
+        bullet_group.draw(screen)
         
 
+    
         
 
     # region EVENT HANDLING
@@ -330,6 +383,10 @@ while running:
                     menu_state = "pause"
                     game_paused = True
                     #print("paused")
+            if event.type == pygame.MOUSEBUTTONDOWN:  # Check for mouse click
+                if event.button == 1:  # Left mouse button
+                    hero.shoot()
+                    
     #endregion    
 
 
